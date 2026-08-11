@@ -1,0 +1,8 @@
+# Generic SPIS peer device node. Exists so SPI_DT_SPEC_GET(DT_NODELABEL(gendev))
+# has the spi-device properties (spi-max-frequency, duplex, frame-format) it
+# expands; no driver binds to it — the camera is the SPI master.
+description: Generic SPIS peer device for SPI_DT_SPEC_GET
+
+compatible: "kagafei,spis-gendev"
+
+include: spi-device.yaml

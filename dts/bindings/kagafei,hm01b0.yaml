@@ -1,0 +1,8 @@
+# HM01B0 register interface node. Exists so I2C_DT_SPEC_GET(DT_ALIAS(hmm))
+# resolves the bus and 7-bit address; the driver lives in src/HM01B0, nothing
+# in-tree binds to this compatible.
+description: Himax HM01B0 image sensor control interface (registers over I2C)
+
+compatible: "kagafei,hm01b0"
+
+include: i2c-device.yaml

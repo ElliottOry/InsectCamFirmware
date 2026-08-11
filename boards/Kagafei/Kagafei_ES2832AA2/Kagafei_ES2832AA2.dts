@@ -1,0 +1,112 @@
+/dts-v1/;
+#include <nordic/nrf52832_qfaa.dtsi>
+#include <zephyr/dt-bindings/i2c/i2c.h>
+#include "Kagafei_ES2832AA2-pinctrl.dtsi"
+
+/ {
+	model = "Kagafei_nrf52832";
+	compatible = "Kagafei,Kagafei-ES2832AA2";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
+	};
+
+	aliases {
+		hmm = &hm01b0;
+	};
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	/* Only P0.00-P0.10, P0.18, P0.20, P0.21 and P0.28 are bonded out. */
+	gpio-reserved-ranges = <11 7>, <19 1>, <22 6>, <29 3>;
+	status = "okay";
+};
+
+/* Disabled: P0.06/P0.08 now carry the camera's HSYNC/VSYNC and the console
+ * runs over SEGGER RTT (prj.conf). No UART pins remain on this module.
+ */
+&uart0 {
+	status = "disabled";
+};
+
+&i2c0 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	pinctrl-0 = <&i2c0_default>;
+	pinctrl-1 = <&i2c0_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	/* HM01B0 register interface; I2C_DT_SPEC_GET(DT_ALIAS(hmm)) pulls the
+	 * bus and 7-bit address from this node.
+	 */
+	hm01b0: hm01b0@24 {
+		compatible = "kagafei,hm01b0";
+		reg = <0x24>;
+	};
+};
+
+/* TWIM1 -- the IMU's bus. Note i2c1 and spi1 are the same hardware instance
+ * (0x40004000) on this SoC, so spi1 must stay disabled while this is in use.
+ */
+&i2c1 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+	pinctrl-0 = <&i2c1_default>;
+	pinctrl-1 = <&i2c1_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+/* SPIS2 -- the camera's pixel-data interface (HM01B0 is the SPI master).
+ * Instance 2 is the only free serial block: instance 0 is TWIM0 (camera I2C)
+ * and instance 1 is TWIM1 (IMU bus). The gendev child only exists so
+ * SPI_DT_SPEC_GET in HM01B0_SPI.c can expand its spi-device properties.
+ */
+&spi2 {
+	compatible = "nordic,nrf-spis";
+	status = "okay";
+	def-char = <0x00>;
+	pinctrl-0 = <&spis2_default>;
+	pinctrl-1 = <&spis2_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	gendev: gendev@0 {
+		compatible = "kagafei,spis-gendev";
+		reg = <0>;
+		spi-max-frequency = <4000000>;
+	};
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 DT_SIZE_K(48)>;
+		};
+
+		slot0_partition: partition@c000 {
+			label = "image-0";
+			reg = <0x0000c000 DT_SIZE_K(220)>;
+		};
+
+		slot1_partition: partition@43000 {
+			label = "image-1";
+			reg = <0x00043000 DT_SIZE_K(220)>;
+		};
+
+		storage_partition: partition@7a000 {
+			label = "storage";
+			reg = <0x0007a000 DT_SIZE_K(24)>;
+		};
+	};
+};

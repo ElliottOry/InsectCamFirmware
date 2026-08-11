@@ -1,0 +1,65 @@
+&pinctrl {
+	/* SPIS2 receives the camera's pixel stream: the HM01B0 is the SPI master.
+	 * PCLKO drives SCK, D0 drives MOSI, and LVLD (HSYNC) doubles as CSN so
+	 * each line burst frames one SPIS transfer. MISO is deliberately not
+	 * assigned — nothing ever clocks data back to the camera.
+	 */
+	spis2_default: spis2_default {
+		group1 {
+			psels = <NRF_PSEL(SPIS_SCK, 0, 7)>,
+				<NRF_PSEL(SPIS_MOSI, 0, 20)>,
+				<NRF_PSEL(SPIS_CSN, 0, 6)>;
+		};
+	};
+
+	spis2_sleep: spis2_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIS_SCK, 0, 7)>,
+				<NRF_PSEL(SPIS_MOSI, 0, 20)>,
+				<NRF_PSEL(SPIS_CSN, 0, 6)>;
+			low-power-enable;
+		};
+	};
+
+	i2c0_default: i2c0_default {
+		group1 {
+			/* SCL is P0.00/XL1, usable as GPIO because the LFCLK runs
+			 * from the internal RC oscillator (see _defconfig).
+			 */
+			psels = <NRF_PSEL(TWIM_SCL, 0, 0)>,
+				<NRF_PSEL(TWIM_SDA, 0, 5)>;
+		};
+	};
+
+	i2c0_sleep: i2c0_sleep {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SCL, 0, 0)>,
+				<NRF_PSEL(TWIM_SDA, 0, 5)>;
+			low-power-enable;
+		};
+	};
+
+	/* Second I2C bus, for the ICM-42686-P IMU. Electrically separate from
+	 * i2c0/the camera: TWIM1 is a different peripheral instance on different
+	 * pins, so the two buses share nothing but the GPIO block.
+	 */
+	i2c1_default: i2c1_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SCL, 0, 28)>,
+				<NRF_PSEL(TWIM_SDA, 0, 2)>;
+			/* Internal pull-ups (~13k) so the bus idles high even if the
+			 * IMU breakout has no external ones fitted. Harmless in
+			 * parallel with external pull-ups if it does.
+			 */
+			bias-pull-up;
+		};
+	};
+
+	i2c1_sleep: i2c1_sleep {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SCL, 0, 28)>,
+				<NRF_PSEL(TWIM_SDA, 0, 2)>;
+			low-power-enable;
+		};
+	};
+};

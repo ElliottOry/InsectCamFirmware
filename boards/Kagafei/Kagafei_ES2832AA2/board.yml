@@ -1,0 +1,6 @@
+board:
+  name: Kagafei_ES2832AA2
+  full_name: Kagafei ES2832AA2
+  vendor: Kagafei
+  socs:
+    - name: nrf52832
