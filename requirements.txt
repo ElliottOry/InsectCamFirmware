@@ -1,0 +1,6 @@
+# BLE receiver (save_to_file_bt.py / save_to_file_bt_video.py)
+bleak>=3.0
+numpy>=2.0
+matplotlib>=3.9    # live image window; without it frames log "[decoded, NOT displayed]"
+pillow>=11.0       # decodes the KJPG frames
+opencv-python>=4.10  # writes the video file in save_to_file_bt_video.py; optional CLAHE in both
